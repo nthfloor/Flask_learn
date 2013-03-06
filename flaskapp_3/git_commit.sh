@@ -1,5 +1,5 @@
 #!/bin/bash
-#Usage: ./git-land current_branch msg...
+#Usage: ./git_commit.sh current_branch msg...
 
 stamp=$(date +"%Y:%m:%d %H:%M:%S")
 master=$(echo master)

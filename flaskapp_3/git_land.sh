@@ -1,11 +1,11 @@
 #!/bin/bash
-#Usage: git-land test_branch ...
+#Usage: ./git_land test_branch msg...
 
 stamp=$(date +"%Y:%m:%d %H:%M:%S")
 master=$(echo master)
 
 git add -i
-git commit -m "$stamp: Merge and land latest changes"
+git commit -m "$stamp: $2"
 git checkout $master
 git fetch --all -v --progress
 git pull origin $master
