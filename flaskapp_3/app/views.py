@@ -6,15 +6,17 @@ from models import User, ROLE_USER, ROLE_ADMIN
 
 @app.route('/')
 @app.route('/index')
+@login_required
 def index():
-    user = {'nickname': 'Miguel'} # fake user
-    posts = [ #fake array of posts
+    user = g.user
+    #user = {'name':'nathan','email':'nathan.floor@gmail.com'}
+    posts = [ 
         {
-            'author':{'nickname':'John'},
+            'author':{'name':'John'},
             'body':'Beautiful day in Portland!'
         },
         {
-            'author':{'nickname':'Susan'},
+            'author':{'name':'Susan'},
             'body':'The avengers movie was cool'
         }
     ]
@@ -25,23 +27,21 @@ def index():
 def login():
     if g.user is not None and g.user.is_authenticated():
         return redirect(url_for('index'))
-
     form = LoginForm()
     if form.validate_on_submit():
         session['remember_me'] = form.remember_me.data
-        return oid.try_login(form.openid.data, ask_for = ['name','email'])
-    
+        return oid.try_login(form.openid.data, ask_for = ['nickname','email'])
     return render_template('login.html',title = 'Sign In',form = form,providers = app.config['OPENID_PROVIDERS'])
 
 @oid.after_login
 def after_login(resp):
-    if resp.email id None or resp.email == "":
+    if resp.email is None or resp.email == "":
         flash('Invalid login. Please try again.')
         redirect(url_for('login'))
     user = User.query.filter_by(email = resp.email).first()
     if user is None:
         name = resp.name
-        if name is None or name = "":
+        if name is None or name == "":
             name = resp.email.split('@')[0]
         user = User(name=name,email=resp.email,role=ROLE_USER)
         db.session.add(user)
@@ -53,6 +53,15 @@ def after_login(resp):
     login_user(user,remember = remember_me)
     return redirect(request.args.get('next') or url_for('index'))
 
+@app.before_request
+def before_request():
+    g.user = current_user
+
 @lm.user_loader
 def load_user(id):
     return User.query.get(int(id))
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
