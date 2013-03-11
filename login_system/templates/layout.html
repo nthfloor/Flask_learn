@@ -2,11 +2,11 @@
 <title>{% block title %}Welcome{% endblock %} | Flask OpenID Example</title>
 <link rel=stylesheet type=text/css href="{{ url_for('static',
   filename='style.css') }}">
-<h1>Flask OpenID Example</h1>
+<h1>Flask OpenID and Database login Example</h1>
 <ul class=navigation>
   <li><a href="{{ url_for('index') }}">overview</a>
   {% if g.user %}
-  <li><a href="{{ url_for('edit_profile') }}">profile</a>
+  <li><a href="{{ url_for('edit_profile') }}">Edit Profile</a>
   <li><a href="{{ url_for('show_all') }}">View all profiles</a></li>
   <li><a href="{{ url_for('logout') }}">sign out [{{ g.user.name }}]</a>
   {% else %}

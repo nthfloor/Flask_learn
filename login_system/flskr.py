@@ -48,6 +48,9 @@ class User(Base):
 @app.before_request
 def before_request():
     g.user = None
+    if 'username' in session:
+        g.user = User.query.filter_by(name=session['username']).first()
+        return
     if 'openid' in session:
         g.user = User.query.filter_by(openid=session['openid']).first()
 
@@ -65,19 +68,28 @@ def index():
 
 @app.route('/show_all', methods=['GET','POST'])
 def show_all():
-    if session['openid'] is not None:
+    if g.user is None or 'openid' not in session:
+        return redirect(url_for('index'))
+    
+    # print g.user.name
+
+    if session['openid'] is not None:        
         if request.method == 'POST':
-            print "entered show_all method with post"
             name = request.form['name']
             email = request.form['email']
             password = request.form['password']
+            openid = request.form['openid']
             if not name:
                 flash(u'Error: you have to provide a name')
+            elif not password:
+                flash(u'Error: you have to provide a password')
+            elif not openid:
+                flash(u'Error: you have to provide a openid')
             elif '@' not in email:
                 flash(u'Error: you have to enter a valid email address')
             else:
                 flash(u'Profile successfully created')
-                db_session.add(User(name, email, password,session['openid']))
+                db_session.add(User(name, email, password,openid))
                 db_session.commit()
                 return redirect(oid.get_next_url())
         return render_template('show_all.html', next=oid.get_next_url(), users=User.query.all())
@@ -105,11 +117,12 @@ def login():
             password = request.form.get('password')
             if username and password:
                 user = User.query.filter(User.name==username and User.password == password).first()
-                # print user
+                # print user.name
                 if user is not None:
                     flash('Successfully logged in')
                     g.user = user
                     session['openid']=user.openid
+                    session['username']=user.name
                     return redirect(url_for('show_all'))
 
     return render_template('login.html', next=oid.get_next_url(),
@@ -163,9 +176,12 @@ def create_profile():
 @app.route('/profile', methods=['GET', 'POST'])
 def edit_profile():
     """Updates a profile"""
-    if g.user is None:
-        abort(401)
-    form = dict(name=g.user.name, email=g.user.email)
+    if g.user is None or 'openid' not in session:
+        # flash(u'You are not authorized to view that page')
+        return redirect(url_for('index'))
+    # if g.user is None:
+    #     abort(401)
+    form = dict(name=g.user.name, email=g.user.email, password=g.user.password, openid=g.user.openid)
     if request.method == 'POST':
         if 'delete' in request.form:
             db_session.delete(g.user)
@@ -176,19 +192,25 @@ def edit_profile():
         form['name'] = request.form['name']
         form['email'] = request.form['email']
         form['password'] = request.form['password']
+        form['openid'] = request.form['openid']
         if not form['name']:
             flash(u'Error: you have to provide a name')
+        elif not form['password']:
+            flash(u'Error: you have to provide a password')
+        elif not form['openid']:
+            flash(u'Error: you have to provide a openid')
         elif '@' not in form['email']:
             flash(u'Error: you have to enter a valid email address')
         else:
             flash(u'Profile successfully edited')
-            db_session.delete(g.user)
-            db_session.commit()
             g.user.name = form['name']
             g.user.email = form['email']
-            g.user.password = form['email']
-            db_session.add(g.user.name,g.user.email,g.user.password,g.user.openid)
+            g.user.password = form['password']
+            g.user.openid = form['openid']
+            # print g.user.name+"1"
+            db_session.merge(g.user)
             db_session.commit()
+            # print g.user.name+"2"
             return redirect(url_for('edit_profile'))
     return render_template('edit_profile.html', form=form)
 
@@ -196,6 +218,7 @@ def edit_profile():
 @app.route('/logout')
 def logout():
     session.pop('openid', None)
+    session.pop('username',None)
     flash(u'You have been signed out')
     return redirect(oid.get_next_url())
 
