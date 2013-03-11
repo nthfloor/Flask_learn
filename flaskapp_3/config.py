@@ -2,7 +2,7 @@ CSRF_ENABLED = True
 SECRET_KEY = 'password'
 
 OPENID_PROVIDERS = [
-    { 'name':'Google','url':'https://www.google.com/accounts/o8/id'},
+    { 'name':'Google','url':'http://openid-provider.appspot.com/nathan.floor'},
     { 'name':'MyOpenID','url':'https://www.myopenid.com'}]
 
 import os

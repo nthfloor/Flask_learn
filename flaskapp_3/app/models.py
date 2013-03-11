@@ -4,11 +4,19 @@ ROLE_USER = 0
 ROLE_ADMIN = 1
 
 class User(db.Model):
+    #__tablename__ = 'users'
     id = db.Column(db.Integer,primary_key = True)
     name = db.Column(db.String(64),index = True)
     email = db.Column(db.String(120),index = True,unique = True)
     role = db.Column(db.SmallInteger,default=ROLE_USER)
+    openid = db.Column(db.String(200))
     posts = db.relationship('Post',backref = 'author',lazy = 'dynamic')
+
+    def __init__(self,name,email,role,openid):
+        self.name = name
+        self.email = email
+        self.role = role
+        self.openid = openid
     
     def is_authenticated(self):
         return True
