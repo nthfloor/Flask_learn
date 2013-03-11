@@ -6,3 +6,8 @@ $ python
 >>> example.init_db()
 
 Before running the project.
+
+To login to the system use an openid which you have access to or use the following admin account:
+
+Username: 'admin'
+Password: 'password'
