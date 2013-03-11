@@ -66,10 +66,8 @@ def index():
 @app.route('/show_all', methods=['GET','POST'])
 def show_all():
     if session['openid'] is not None:
-        print "entered show_all method"
-        return render_template('show_all.html',users=User.query.all())
-
         if request.method == 'POST':
+            print "entered show_all method with post"
             name = request.form['name']
             email = request.form['email']
             password = request.form['password']
@@ -82,7 +80,7 @@ def show_all():
                 db_session.add(User(name, email, password,session['openid']))
                 db_session.commit()
                 return redirect(oid.get_next_url())
-        return render_template('show_all.html', next_url=oid.get_next_url())
+        return render_template('show_all.html', next=oid.get_next_url(), users=User.query.all())
     
     flash('Not logged in yet')
     return render_template('index.html',next_url=oid.get_next_url())
