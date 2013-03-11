@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+{% block title %}Show all user profiles on System{% endblock %}
+{% block body %}
+  <ul>
+    {% for user in users %}
+      <li>{{ user.name }} | {{ user.email }} | {{ user.password }} | {{ user.openid }}</li>
+    {% endfor %}
+  </ul>
+  <br>
+  <h2>Manually Add a new user to system:</h2>
+  <form action="" method=post>
+    <dl>
+      <dt>Name:
+      <dd><input type=text name=name size=30 value="">
+      <dt>E-Mail
+      <dd><input type=text name=email size=30 value="">
+      <dt>Password:
+      <dd><input type=password name=password size=30 value="">
+    </dl>
+    <input type=submit value="Add User">
+    <input type=hidden name=next value="{{ next }}">
+  </form>
+{% endblock %}
