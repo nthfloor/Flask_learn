@@ -63,25 +63,27 @@ def after_request(response):
 def index():
     return render_template('index.html')
 
-@app.route('/show_all')
+@app.route('/show_all', methods=['GET','POST'])
 def show_all():
     if session['openid'] is not None:
+        print "entered show_all method"
         return render_template('show_all.html',users=User.query.all())
 
-    # if request.method == 'POST':
-    #     name = request.form['name']
-    #     email = request.form['email']
-    #     password = request.form['password']
-    #     if not name:
-    #         flash(u'Error: you have to provide a name')
-    #     elif '@' not in email:
-    #         flash(u'Error: you have to enter a valid email address')
-    #     else:
-    #         flash(u'Profile successfully created')
-    #         db_session.add(User(name, email, password,session['openid']))
-    #         db_session.commit()
-    #         return redirect(oid.get_next_url())
-
+        if request.method == 'POST':
+            name = request.form['name']
+            email = request.form['email']
+            password = request.form['password']
+            if not name:
+                flash(u'Error: you have to provide a name')
+            elif '@' not in email:
+                flash(u'Error: you have to enter a valid email address')
+            else:
+                flash(u'Profile successfully created')
+                db_session.add(User(name, email, password,session['openid']))
+                db_session.commit()
+                return redirect(oid.get_next_url())
+        return render_template('show_all.html', next_url=oid.get_next_url())
+    
     flash('Not logged in yet')
     return render_template('index.html',next_url=oid.get_next_url())
 
@@ -170,7 +172,7 @@ def edit_profile():
         if 'delete' in request.form:
             db_session.delete(g.user)
             db_session.commit()
-            session['openid'] = None
+            # session['openid'] = None
             flash(u'Profile deleted')
             return redirect(url_for('index'))
         form['name'] = request.form['name']
@@ -181,10 +183,13 @@ def edit_profile():
         elif '@' not in form['email']:
             flash(u'Error: you have to enter a valid email address')
         else:
-            flash(u'Profile successfully created')
+            flash(u'Profile successfully edited')
+            db_session.delete(g.user)
+            db_session.commit()
             g.user.name = form['name']
             g.user.email = form['email']
             g.user.password = form['email']
+            db_session.add(g.user.name,g.user.email,g.user.password,g.user.openid)
             db_session.commit()
             return redirect(url_for('edit_profile'))
     return render_template('edit_profile.html', form=form)
